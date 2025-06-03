@@ -1,0 +1,124 @@
+// Directory structure:
+// src/
+//   - App.jsx
+//   - calculateMaterials.js
+//   - recipes.js
+//   - index.js
+// package.json, etc. will be handled by Create React App
+
+// src/recipes.js
+export const recipes = {
+  "Flour": { level: 1, ingredients: [{ item: "Wheat", qty: 5 }] },
+  "Dough": { level: 2, ingredients: [
+    { item: "Egg", qty: 1 },
+    { item: "Water", qty: 1 },
+    { item: "Flour", qty: 1 },
+  ]},
+  "Pancake": { level: 2, ingredients: [
+    { item: "Fire", qty: 2 },
+    { item: "Dough", qty: 2 },
+    { item: "Buttermilk", qty: 1 },
+  ]},
+  "Buttermilk": { level: 1, ingredients: [
+    { item: "Milk", qty: 3 },
+    { item: "Corn", qty: 3 },
+  ]},
+  "Strawberry pie": { level: 4, ingredients: [
+    { item: "Butter", qty: 1 },
+    { item: "Strawberry", qty: 9 },
+    { item: "Pastry Crust", qty: 1 },
+  ]},
+  "Butter": { level: 2, ingredients: [
+    { item: "Cream", qty: 2 },
+  ]},
+  "Cream": { level: 1, ingredients: [
+    { item: "Milk", qty: 6 },
+  ]},
+  "Pastry Crust": { level: 3, ingredients: [
+    { item: "Dough", qty: 2 },
+    { item: "Butter", qty: 1 },
+    { item: "Sugar", qty: 1 },
+  ]},
+  "Sugar": { level: 1, ingredients: [
+    { item: "Fire", qty: 1 },
+    { item: "Sugarcane", qty: 5 },
+  ]},
+};
+
+// src/calculateMaterials.js
+import { recipes } from './recipes';
+
+export function calculateRawMaterials(productList) {
+  const rawMaterials = {};
+
+  const recurse = (itemName, quantity) => {
+    const recipe = recipes[itemName];
+
+    if (!recipe || recipe.level === 1) {
+      rawMaterials[itemName] = (rawMaterials[itemName] || 0) + quantity;
+      return;
+    }
+
+    recipe.ingredients.forEach(ingredient => {
+      recurse(ingredient.item, ingredient.qty * quantity);
+    });
+  };
+
+  for (const [itemName, qty] of Object.entries(productList)) {
+    recurse(itemName, qty);
+  }
+
+  return rawMaterials;
+}
+
+// src/App.jsx
+import React, { useState } from 'react';
+import { calculateRawMaterials } from './calculateMaterials';
+
+function App() {
+  const [setA, setSetA] = useState({ "Pancake": 2 });
+  const [setB, setSetB] = useState({ "Strawberry pie": 1 });
+
+  const materialsA = calculateRawMaterials(setA);
+  const materialsB = calculateRawMaterials(setB);
+
+  return (
+    <div className="p-6 font-sans">
+      <h1 className="text-2xl font-bold mb-4">Crafting Material Comparator</h1>
+
+      <div className="grid grid-cols-2 gap-6">
+        <div>
+          <h2 className="text-xl font-semibold">Set A</h2>
+          <pre className="bg-gray-100 p-4 rounded-md">{JSON.stringify(materialsA, null, 2)}</pre>
+        </div>
+        <div>
+          <h2 className="text-xl font-semibold">Set B</h2>
+          <pre className="bg-gray-100 p-4 rounded-md">{JSON.stringify(materialsB, null, 2)}</pre>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default App;
+
+// src/index.js
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+import './index.css';
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
+
+// src/index.css
+body {
+  font-family: sans-serif;
+  background-color: #f9fafb;
+  margin: 0;
+  padding: 0;
+}
